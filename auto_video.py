@@ -1,7 +1,11 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+
+# here put the import lib
 import json
 import tkinter as tk
-import tkinter.colorchooser
-import tkinter.ttk
+from tkinter import colorchooser
+from tkinter import ttk
 from PIL import Image,ImageFont,ImageDraw
 from aip import AipSpeech
 import os
@@ -9,6 +13,12 @@ import sys
 import cv2
 import eyed3
 from moviepy.editor import VideoFileClip,AudioFileClip,CompositeAudioClip,concatenate_videoclips
+
+#class type_system_info:
+#    def __init__(self, name):
+#        self.name = name
+#
+#system_info = type_system_info(os.name)
 
 # 加载配置
 def load_setting():
@@ -22,7 +32,6 @@ def load_setting():
     # 清空表格
     for item in tv.get_children():
         tv.delete(item)
-    tv.column()
 
     # 写入数据
     ans=1
@@ -125,25 +134,31 @@ def _read(path):
 # 颜色选择
 def choose_color(flag):
 
-    a1 = tkinter.colorchooser.askcolor(color='red', title='选择字体颜色')
+    ac = colorchooser.askcolor(color='red', title='选择字体颜色')
 
     if flag:
-        text_color_r.set(int(a1[0][0]))
-        text_color_g.set(int(a1[0][1]))
-        text_color_b.set(int(a1[0][2]))
+        text_color_r.set(int(ac[0][0]))
+        text_color_g.set(int(ac[0][1]))
+        text_color_b.set(int(ac[0][2]))
     else:
-        name_color_r.set(int(a1[0][0]))
-        name_color_g.set(int(a1[0][1]))
-        name_color_b.set(int(a1[0][2]))
+        name_color_r.set(int(ac[0][0]))
+        name_color_g.set(int(ac[0][1]))
+        name_color_b.set(int(ac[0][2]))
 
 # 添加角色
 def new_row():
 
-    if(len(tv.get_children())<10):
         tv.insert('', len(tv.get_children()),values=("pc",0,5,5,1))
         tv.update()
-    else:
-        print('超出最大数量')
+
+# 删除角色
+def delete_row():
+    
+    try:
+        tv.delete(tv.selection()[0])
+        tv.update()
+    except:
+        pass
 
 # 编辑单元格
 def set_cell_value(event): 
@@ -153,22 +168,24 @@ def set_cell_value(event):
 
     column= tv.identify_column(event.x)# 列
     row = tv.identify_row(event.y)  # 行
-
-    cn = int(str(column).replace('#',''))
-    rn = int(str(row).replace('I',''))
-    print(column,row,cn,rn)
-    edit = tk.Text(root,width=10,height = 1)
-    edit.place(x=20+(cn-1)*100, y=165+rn*20)
-
-    def save_edit(event):
-        tv.set(item, column=column, value=edit.get(0.0, "end").split('\n')[0])
-        edit.destroy()
     
-    def quit_edit(event):
-        edit.destroy()
+    try:
+        cn = int(str(column).replace('#',''))
+        rn = int(str(row).replace('I',''))
+        edit = tk.Text(root,width=10,height = 1)
+        edit.place(x=20+(cn-1)*100, y=165+rn*20)
+        
+        def save_edit(event):
+            tv.set(item, column=column, value=edit.get(0.0, "end").split('\n')[0])
+            edit.destroy()
+        
+        def quit_edit(event):
+            edit.destroy()
 
-    edit.bind('<Return>',save_edit)
-    edit.bind('<Leave>',quit_edit)
+        edit.bind('<Return>',save_edit)
+        edit.bind('<Leave>',quit_edit)
+    except:
+        pass
 
 # 逐帧合成
 def create_frame(num,name,text):
@@ -433,13 +450,16 @@ if __name__== '__main__':
 
         # 表格
         columns=("角色名","语速","发音人","音调","左右")
-        tv = tkinter.ttk.Treeview(root, height=10, show="headings", columns=columns)  
+        tv = ttk.Treeview(root, height=10, show="headings", columns=columns)  
         
         for i in columns:
             tv.heading(i, text=i) # 显示表头
             tv.column(i, width=100, anchor='center') # 表示列,不显示
         
         tv.place(x=10,y=160)
+        sb = ttk.Scrollbar(root,command=tv.yview)
+        sb.pack(side="right", fill="y")
+        tv.configure(yscrollcommand=sb.set)
 
         # 写入数据
         ans=1
@@ -453,20 +473,24 @@ if __name__== '__main__':
 
         # 底部按钮
 
-        b3=tk.ttk.Button(root, text='添加角色', width=20, command=new_row)
-        b3.place(x=100,y=403)
+        b3=ttk.Button(root, text='添加角色', width=15, command=new_row)
+        b3.place(x=20,y=403)
 
-        b4=tk.Button(root,text="重载配置",command=load_setting)
-        b4.place(x=280,y=400)
+        b4=ttk.Button(root, text='删除角色', width=15, command=delete_row)
+        b4.place(x=150,y=403)
 
-        b5=tk.Button(root,text="保存配置",command=save_setting)
-        b5.place(x=350,y=400)
+        b5=tk.Button(root,text="重载配置",command=load_setting)
+        b5.place(x=280,y=400)
 
-        b6=tk.Button(root,text="开始生成",command=pure_generate)
-        b6.place(x=420,y=400)
+        b6=tk.Button(root,text="保存配置",command=save_setting)
+        b6.place(x=350,y=400)
 
-        root.geometry('520x440')
+        b7=tk.Button(root,text="开始生成",command=pure_generate)
+        b7.place(x=420,y=400)
+
+        root.geometry('530x440')
         root.title("跑团自动视频生成")
+        root.resizable(width=False, height=False)
         root.iconbitmap("img/default/icon.ico")
         root.mainloop()
     else:

@@ -6,7 +6,7 @@
         "kp": {
             "sound": {
                 "spd": 6,
-                "per": 1,
+                "per": 2,
                 "pid": 4
             },
             "location": 0
@@ -16,14 +16,6 @@
                 "spd": 6,
                 "per": 1,
                 "pid": 4
-            },
-            "location": 1
-        },
-        "spiral": {
-            "sound": {
-                "spd": 7,
-                "per": 4,
-                "pid": 8
             },
             "location": 1
         }
