@@ -4,20 +4,34 @@
     "SECRET_KEY": "yARGOWrKDHDSDIkkD1ngFNKvjvhvBWdX",
     "character": {
         "kp": {
-            "spd": 6,
-            "per": 1,
-            "pid": 4
+            "sound": {
+                "spd": 6,
+                "per": 1,
+                "pid": 4
+            },
+            "location": 0
         },
-        "sma": {
-            "spd": 7,
-            "per": 4,
-            "pid": 8
+        "s": {
+            "sound": {
+                "spd": 6,
+                "per": 1,
+                "pid": 4
+            },
+            "location": 1
+        },
+        "spiral": {
+            "sound": {
+                "spd": 7,
+                "per": 4,
+                "pid": 8
+            },
+            "location": 1
         }
     },
     "name_color": {
         "R": 0,
         "G": 128,
-        "B": 192
+        "B": 255
     },
     "text_color": {
         "R": 255,

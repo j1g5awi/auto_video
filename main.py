@@ -1,6 +1,7 @@
 import json
 import tkinter as tk
 import tkinter.colorchooser
+import tkinter.ttk
 from PIL import Image,ImageFont,ImageDraw
 from aip import AipSpeech
 import os
@@ -13,14 +14,64 @@ from moviepy.editor import VideoFileClip,AudioFileClip,CompositeAudioClip,concat
 def load_setting():
 
     global setting
-
+   
     print('读取配置文件')
     setting_json=_read("setting.json")
-    if (setting_json):
-        setting=json.loads(setting_json)
+    if (setting_json):setting=json.loads(setting_json)
+
+    # 清空表格
+    for item in tv.get_children():
+        tv.delete(item)
+    tv.column()
+
+    # 写入数据
+    ans=1
+    for i in setting['character']: 
+        tv.insert('', ans, values=(i,setting['character'][i]['sound']['spd'],setting['character'][i]['sound']['per'],
+        setting['character'][i]['sound']['pid'],setting['character'][i]['location']))
+        ans+=1
+    tv.update()
+
+    name_color_r.set(setting['name_color']['R'])
+    name_color_g.set(setting['name_color']['G'])
+    name_color_b.set(setting['name_color']['B'])
+    text_color_r.set(setting['text_color']['R'])
+    text_color_g.set(setting['text_color']['G'])
+    text_color_b.set(setting['text_color']['B'])
+    text_len.set(setting['text_len'])
+    APP_ID.set(setting['APP_ID'])
+    API_KEY.set(setting['API_KEY'])
+    SECRET_KEY.set(setting['SECRET_KEY'])
 
 # 保存配置
 def save_setting():
+
+    for i in tv.get_children():
+        values=tv.item(i,'values')
+        try:
+            setting['character'][values[0]]['sound']['spd']=int(values[1])
+            setting['character'][values[0]]['sound']['per']=int(values[2])
+            setting['character'][values[0]]['sound']['pid']=int(values[3])
+            setting['character'][values[0]]['location']=int(values[4])
+        except:
+            setting['character'][values[0]]={}
+            setting['character'][values[0]]['sound']={}
+            setting['character'][values[0]]['sound']['spd']=int(values[1])
+            setting['character'][values[0]]['sound']['per']=int(values[2])
+            setting['character'][values[0]]['sound']['pid']=int(values[3])
+            setting['character'][values[0]]['location']=int(values[4])
+    
+    #删除多余的行
+    name_judge={}
+    for i in setting['character']:
+        name_judge[i]=1
+        for j in tv.get_children():
+            values=tv.item(j,'values')
+            if(values[0]==i):
+                name_judge[i]=0
+                break
+    for i in name_judge:
+        if name_judge[i]:setting['character'].pop(i)
 
     setting['name_color']['R']=name_color_r.get()
     setting['name_color']['G']=name_color_g.get()
@@ -85,6 +136,40 @@ def choose_color(flag):
         name_color_g.set(int(a1[0][1]))
         name_color_b.set(int(a1[0][2]))
 
+# 添加角色
+def new_row():
+
+    if(len(tv.get_children())<10):
+        tv.insert('', len(tv.get_children()),values=("pc",0,5,5,1))
+        tv.update()
+    else:
+        print('超出最大数量')
+
+# 编辑单元格
+def set_cell_value(event): 
+
+    for item in tv.selection():
+        item_text = tv.item(item, "values")
+
+    column= tv.identify_column(event.x)# 列
+    row = tv.identify_row(event.y)  # 行
+
+    cn = int(str(column).replace('#',''))
+    rn = int(str(row).replace('I',''))
+    print(column,row,cn,rn)
+    edit = tk.Text(root,width=10,height = 1)
+    edit.place(x=20+(cn-1)*100, y=165+rn*20)
+
+    def save_edit(event):
+        tv.set(item, column=column, value=edit.get(0.0, "end").split('\n')[0])
+        edit.destroy()
+    
+    def quit_edit(event):
+        edit.destroy()
+
+    edit.bind('<Return>',save_edit)
+    edit.bind('<Leave>',quit_edit)
+
 # 逐帧合成
 def create_frame(num,name,text):
 
@@ -111,7 +196,7 @@ def create_frame(num,name,text):
     # 语音合成
     client = AipSpeech(setting["APP_ID"], setting["API_KEY"], setting["SECRET_KEY"])
     try:
-        result = client.synthesis(text,'zh', 1,setting['character'][name])
+        result = client.synthesis(text,'zh', 1,setting['character'][name]['sound'])
     except: 
         result = client.synthesis(text,'zh', 1)
 
@@ -138,9 +223,13 @@ def create_frame(num,name,text):
     # 画布（背景+立绘+对话框渲染）
     graph=bg
     try:
-        graph.paste(character,(0,280),mask=character.split()[3])
+        if(setting['character'][name]['location']):
+            graph.paste(character,(1420,280),mask=character.split()[3])
+        else:
+            graph.paste(character,(0,280),mask=character.split()[3])
     except:
-        graph.paste(character,(0,280))
+        graph.paste(character,(1420,280),mask=character.split()[3])
+        
     graph.paste(dialog,(0,803),mask=dialog.split()[3])
 
     draw=ImageDraw.Draw(graph)
@@ -162,6 +251,7 @@ def create_frame(num,name,text):
         text=text0
     else:
         text=[text]
+
     text_color=tuple(setting['text_color'].values())
     for i in range(len(text)):
         draw.text((400,880+i*50),text[i],text_color,font=text_font)
@@ -171,6 +261,7 @@ def create_frame(num,name,text):
 
 # 视频合成
 def create_video(len_list):
+
     fourcc=cv2.VideoWriter_fourcc("D","I","V","X")
     img=cv2.imread("frame/0.jpg")
     imgInfo = img.shape
@@ -185,6 +276,7 @@ def create_video(len_list):
 
 # 添加音频
 def audio_add(len_list):
+
     video = VideoFileClip('video/video.avi')
     result=[]
     for i in range(len(len_list)):
@@ -206,6 +298,7 @@ def audio_add(len_list):
 def pure_generate():
 
     _clear()
+
     save_setting()
 
     text=_read("log.txt")
@@ -247,7 +340,9 @@ if __name__== '__main__':
 
     gui_flag=1
 
-    load_setting()
+    print('读取配置文件')
+    setting_json=_read("setting.json")
+    if (setting_json):setting=json.loads(setting_json)
 
     if gui_flag:
 
@@ -336,18 +431,43 @@ if __name__== '__main__':
         e6=tk.Entry(root,width=55,textvariable=SECRET_KEY)
         e6.place(x=120,y=130)
 
+        # 表格
+        columns=("角色名","语速","发音人","音调","左右")
+        tv = tkinter.ttk.Treeview(root, height=10, show="headings", columns=columns)  
+        
+        for i in columns:
+            tv.heading(i, text=i) # 显示表头
+            tv.column(i, width=100, anchor='center') # 表示列,不显示
+        
+        tv.place(x=10,y=160)
+
+        # 写入数据
+        ans=1
+        for i in setting['character']: 
+            tv.insert('', ans, values=(i,setting['character'][i]['sound']['spd'],setting['character'][i]['sound']['per'],
+            setting['character'][i]['sound']['pid'],setting['character'][i]['location']))
+            ans+=1
+
+         # 双击左键进入编辑
+        tv.bind('<Double-1>', set_cell_value)
+
         # 底部按钮
-        b3=tk.Button(root,text="重载配置",command=load_setting)
-        b3.place(x=280,y=400)
 
-        b4=tk.Button(root,text="保存配置",command=save_setting)
-        b4.place(x=350,y=400)
+        b3=tk.ttk.Button(root, text='添加角色', width=20, command=new_row)
+        b3.place(x=100,y=403)
 
-        b5=tk.Button(root,text="开始生成",command=pure_generate)
-        b5.place(x=420,y=400)
+        b4=tk.Button(root,text="重载配置",command=load_setting)
+        b4.place(x=280,y=400)
+
+        b5=tk.Button(root,text="保存配置",command=save_setting)
+        b5.place(x=350,y=400)
+
+        b6=tk.Button(root,text="开始生成",command=pure_generate)
+        b6.place(x=420,y=400)
 
         root.geometry('520x440')
         root.title("跑团自动视频生成")
+        root.iconbitmap("img/default/icon.ico")
         root.mainloop()
     else:
         pure_generate()
