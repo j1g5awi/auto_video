@@ -4,12 +4,12 @@
 # here put the import lib
 import json
 import tkinter as tk
+from tkinter import filedialog
 from tkinter import colorchooser
 from tkinter import ttk
 from PIL import Image,ImageFont,ImageDraw
 from aip import AipSpeech
 import os
-import sys
 import cv2
 import eyed3
 from moviepy.editor import VideoFileClip,AudioFileClip,CompositeAudioClip,concatenate_videoclips
@@ -26,8 +26,18 @@ def load_setting():
     global setting
    
     print('读取配置文件')
-    setting_json=_read("setting.json")
-    if (setting_json):setting=json.loads(setting_json)
+    try:
+        fp=open("setting.json",'r',encoding='utf-8')
+        setting_json=fp.read()
+        fp.close()
+    except:
+        print('读取配置文件失败')
+    setting=json.loads(setting_json)
+
+# 重置GUI
+def reset_gui():
+
+    load_setting()
 
     # 清空表格
     for item in tv.get_children():
@@ -51,6 +61,28 @@ def load_setting():
     APP_ID.set(setting['APP_ID'])
     API_KEY.set(setting['API_KEY'])
     SECRET_KEY.set(setting['SECRET_KEY'])
+
+# 加载剧本
+def load_log(path):
+
+    print('读取剧本')
+    try:
+        fp=open(path,'r',encoding='utf-8')
+        text=fp.read()
+        fp.close()
+
+        # 分割文本
+        try:
+            text=text.split("\n\n")
+            num=len(text)
+            for i in range(num):
+                text[i]=text[i].split("\n")
+            return num,text
+        except:
+            print("剧本格式错误")
+
+    except:
+        print('读取剧本失败')
 
 # 保存配置
 def save_setting():
@@ -98,7 +130,7 @@ def save_setting():
     print("配置保存成功")
 
 # 清理残留文件
-def _clear():
+def file_clear():
 
     print('清理上次残留文件')
     if(os.path.exists("frame")):
@@ -119,18 +151,6 @@ def _clear():
     else:
         os.mkdir("video")
 
-# 文件读取
-def _read(path):
-
-    try:
-        f=open(path,"r",encoding="utf-8")
-        x=f.read()
-        f.close()
-        return x
-    except:
-        print('读取'+path+'失败')
-        return 0
-
 # 颜色选择
 def choose_color(flag):
 
@@ -144,6 +164,11 @@ def choose_color(flag):
         name_color_r.set(int(ac[0][0]))
         name_color_g.set(int(ac[0][1]))
         name_color_b.set(int(ac[0][2]))
+
+def select_file():
+
+    global log_file
+    log_file = filedialog.askopenfilenames(title="请选择剧本文件", filetypes=[("Text", "*.txt"), ("All Files", "*")])[0]
 
 # 添加角色
 def new_row():
@@ -222,7 +247,6 @@ def create_frame(num,name,text):
             f.write(result)
     else:
         print("语音合成出错")
-        sys.exit()
         
     # 对话框大小调整
     dialog= Image.open("image/default/dialog.png")
@@ -314,22 +338,13 @@ def audio_add(len_list):
 # 无GUI生成
 def pure_generate():
 
-    _clear()
+    file_clear()
 
     save_setting()
 
-    text=_read("log.txt")
-    if(not(text)):sys.exit()
-
-    # 分割文本
-    try:
-        text=text.split("\n\n")
-        num=len(text)
-        for i in range(num):
-            text[i]=text[i].split("\n")
-    except:
-        print("log.txt格式错误")
-        sys.exit()
+    log=load_log(log_file)
+    num=log[0]
+    text=log[1]
 
     # 逐帧合成
     print("开始合成，一共有"+str(num)+"帧")
@@ -357,9 +372,9 @@ if __name__== '__main__':
 
     gui_flag=1
 
-    print('读取配置文件')
-    setting_json=_read("setting.json")
-    if (setting_json):setting=json.loads(setting_json)
+    log_file="log.txt"
+
+    load_setting()
 
     if gui_flag:
 
@@ -479,7 +494,7 @@ if __name__== '__main__':
         b4=ttk.Button(root, text='删除角色', width=15, command=delete_row)
         b4.place(x=150,y=403)
 
-        b5=tk.Button(root,text="重载配置",command=load_setting)
+        b5=tk.Button(root,text="重载配置",command=reset_gui)
         b5.place(x=280,y=400)
 
         b6=tk.Button(root,text="保存配置",command=save_setting)
@@ -488,6 +503,13 @@ if __name__== '__main__':
         b7=tk.Button(root,text="开始生成",command=pure_generate)
         b7.place(x=420,y=400)
 
+        
+        menubar = tk.Menu(root)
+        filemenu = tk.Menu(menubar, tearoff=False)
+        menubar.add_cascade(label="文件", menu=filemenu)
+        filemenu.add_command(label="导入文件", command=select_file)
+
+        root.config(menu=menubar)
         root.geometry('530x440')
         root.title("跑团自动视频生成")
         root.resizable(width=False, height=False)
