@@ -192,18 +192,18 @@ def create_frame(num,name,text):
 
     # 立绘
     try:
-        character= Image.open("img/"+name+".png")
+        character= Image.open("image/"+name+".png")
     except:
         if(name=="kp"):
-            character = Image.open("img/default/kp.png")
+            character = Image.open("image/default/kp.png")
         else:
-            character = Image.open("img/default/pc.png")
+            character = Image.open("image/default/pc.png")
 
     # 背景
     try:
-        bg= Image.open("img/bg.jpg")
+        bg= Image.open("image/bg.jpg")
     except:
-        bg= Image.open("img/default/bg.jpg")
+        bg= Image.open("image/default/bg.jpg")
 
     bg=bg.resize((1920,1080),Image.BILINEAR)
     bg_x,bg_y=bg.size
@@ -225,7 +225,7 @@ def create_frame(num,name,text):
         sys.exit()
         
     # 对话框大小调整
-    dialog= Image.open("img/default/dialog.png")
+    dialog= Image.open("image/default/dialog.png")
     dialog=dialog.resize((1920,277),Image.BILINEAR)
     dialog_x,dialog_y=dialog.size
     
@@ -491,7 +491,7 @@ if __name__== '__main__':
         root.geometry('530x440')
         root.title("跑团自动视频生成")
         root.resizable(width=False, height=False)
-        root.iconbitmap("img/default/icon.ico")
+        root.iconbitmap("image/default/icon.ico")
         root.mainloop()
     else:
         pure_generate()
