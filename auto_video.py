@@ -217,7 +217,14 @@ def create_frame(num,name,text):
 
     # 立绘
     try:
-        character= Image.open("image/"+name+".png")
+        try:
+            character= Image.open("image/"+name+".png")
+            name=name.split("(")[0]
+            name=name.split("（")[0]
+        except:
+            name=name.split("(")[0]
+            name=name.split("（")[0]
+            character= Image.open("image/"+name+".png")
     except:
         if(name=="kp"):
             character = Image.open("image/default/kp.png")
@@ -233,8 +240,6 @@ def create_frame(num,name,text):
     bg=bg.resize((1920,1080),Image.BILINEAR)
     bg_x,bg_y=bg.size
 
-    sound_jdg=0
-    
     # 语音合成
     client = AipSpeech(setting["APP_ID"], setting["API_KEY"], setting["SECRET_KEY"])
     try:
