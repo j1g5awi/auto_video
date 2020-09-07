@@ -73,13 +73,13 @@ def save_setting():
         try:
             setting['character'][values[0]]['sound']['spd'] = int(values[1])
             setting['character'][values[0]]['sound']['per'] = int(values[2])
-            setting['character'][values[0]]['sound']['pid'] = int(values[3])
+            setting['character'][values[0]]['sound']['pit'] = int(values[3])
         except:
             setting['character'][values[0]] = {}
             setting['character'][values[0]]['sound'] = {}
             setting['character'][values[0]]['sound']['spd'] = int(values[1])
             setting['character'][values[0]]['sound']['per'] = int(values[2])
-            setting['character'][values[0]]['sound']['pid'] = int(values[3])
+            setting['character'][values[0]]['sound']['pit'] = int(values[3])
 
     # 删除多余的行
     name_judge = {}
@@ -189,13 +189,13 @@ def create_frame(num, player_name, text, bg):
     # 立绘
     try:
         try:
-            character = Image.open("image/" + player_name + ".png")
+            character = Image.open("img/" + player_name + ".png")
             player_name = player_name.split("(")[0]
             player_name = player_name.split("（")[0]
         except:
             player_name = player_name.split("(")[0]
             player_name = player_name.split("（")[0]
-            character = Image.open("image/" + player_name + ".png")
+            character = Image.open("img/" + player_name + ".png")
     except:
         if (player_name == "kp"):
             player = Image.open("img/default/kp.png")
@@ -442,7 +442,7 @@ if __name__ == '__main__':
         for i in setting['character']:
             tv.insert('', ans,
                       values=(i, setting['character'][i]['sound']['spd'], setting['character'][i]['sound']['per'],
-                              setting['character'][i]['sound']['pid']))
+                              setting['character'][i]['sound']['pit']))
             ans += 1
 
         # 双击左键进入编辑

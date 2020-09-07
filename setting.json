@@ -7,14 +7,14 @@
             "sound": {
                 "spd": 6,
                 "per": 1,
-                "pid": 4
+                "pit": 4
             }
         },
         "sma": {
             "sound": {
                 "spd": 7,
                 "per": 4,
-                "pid": 8
+                "pit": 8
             }
         }
     },
