@@ -353,7 +353,7 @@ def audio_add(len_list):
         audio = AudioFileClip("sound/" + str(i) + ".mp3")
         video_ = video_.set_audio(audio)
         subvideo = video_
-        subvideo.write_videofile("video/zc" + str(i) + ".avi", codec="png")
+        subvideo.write_videofile("video/" + str(i) + ".avi", codec="png")
         # result.append(subvideo)
     # print(len(result))
     # result=concatenate_videoclips(result)
