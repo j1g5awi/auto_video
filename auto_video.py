@@ -326,15 +326,15 @@ def create_frame(num, name, text):
 # 视频合成
 def create_video(len_list):
 
-    fourcc = cv2.VideoWriter_fourcc("D", "I", "V", "X")
+    fourcc = cv2.VideoWriter_fourcc("m", "p", "4", "v")
     img = cv2.imread("frame/0.jpg")
     imgInfo = img.shape
     size = (imgInfo[1], imgInfo[0])
-    video = cv2.VideoWriter("video/video.avi", fourcc, 1, size)
+    video = cv2.VideoWriter("video/tmp.mp4", fourcc, 24, size)
     num = len(len_list)
     for i in range(num):
         img = cv2.imread("frame/" + str(i) + ".jpg")
-        for j in range(len_list[i]):
+        for j in range(len_list[i] + 2):
             video.write(img)
     video.release()
 
@@ -342,22 +342,22 @@ def create_video(len_list):
 # 添加音频
 def audio_add(len_list):
 
-    video = VideoFileClip("video/video.avi")
+    video = VideoFileClip("video/tmp.mp4")
     result = []
     for i in range(len(len_list)):
         if i != 0:
-            video_ = video.subclip(sum(len_list[0:i]), sum(len_list[0:i]) + len_list[i])
-            print([sum(len_list[0:i]), sum(len_list[0:i]) + len_list[i]])
+            video_ = video.subclip(
+                sum(len_list[0:i]) / 24, (sum(len_list[0:i]) + len_list[i]) / 24
+            )
         else:
-            video_ = video.subclip(0, len_list[i])
+            video_ = video.subclip(0, len_list[i] / 24)
         audio = AudioFileClip("sound/" + str(i) + ".mp3")
         video_ = video_.set_audio(audio)
         subvideo = video_
-        subvideo.write_videofile("video/" + str(i) + ".avi", codec="png")
-        # result.append(subvideo)
-    # print(len(result))
-    # result=concatenate_videoclips(result)
-    # result.write_videofile("video/result.avi",codec="png")
+        subvideo.write_videofile("video/" + str(i) + ".mp4", codec="png")
+        result.append(subvideo)
+    result = concatenate_videoclips(result)
+    result.write_videofile("output.mp4", codec="png")
 
 
 # 无GUI生成
@@ -365,7 +365,8 @@ def pure_generate():
 
     file_clear()
 
-    save_setting()
+    if gui_flag:
+        save_setting()
 
     log = load_log(log_file)
     num = log[0]
@@ -382,8 +383,7 @@ def pure_generate():
     for i in range(num):
         voice_file = eyed3.load("sound/" + str(i) + ".mp3")
         secs = voice_file.info.time_secs
-        secs = int(secs) + 1
-        len_list.append(secs)
+        len_list.append(int(secs * 24))
 
     create_video(len_list)
 
@@ -396,7 +396,7 @@ def pure_generate():
 
 if __name__ == "__main__":
 
-    gui_flag = 1
+    gui_flag = 0
 
     log_file = "log.txt"
 

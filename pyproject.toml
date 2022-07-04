@@ -15,6 +15,10 @@ Pillow = "^9.2.0"
 opencv-python = "^4.6.0.66"
 moviepy = "^1.0.3"
 
+[tool.poetry.group.dev.dependencies]
+black = "^22.6.0"
+isort = "^5.10.1"
+
 [tool.black]
 line-length = 88
 target-version = ["py37", "py38", "py39", "py310"]
